@@ -14,10 +14,11 @@ motor FrontLeft = motor(PORT14, ratio6_1, true);
 motor BackRight = motor(PORT13, ratio6_1, false);
 motor BackLeft = motor(PORT12, ratio6_1, true);
 
-motor Intake = motor(PORT8, ratio6_1, true);
-motor Outtake = motor(PORT6, ratio6_1, false);
+motor Intake = motor(PORT8, ratio18_1, true);
+motor Outtake = motor(PORT6, ratio18_1, false);
 pneumatics Matchloader = pneumatics(Brain.ThreeWirePort.A);
 pneumatics Wing = pneumatics(Brain.ThreeWirePort.B);
+pneumatics Middle = pneumatics(Brain.ThreeWirePort.C);  
 
 void vexcodeInit(void) {}
 

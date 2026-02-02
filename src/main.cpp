@@ -1,22 +1,19 @@
 
 #include "vex.h"
+#include "auton.h"
 
 using namespace vex;
 
 competition Competition;
 
-
 void pre_auton(void) {
+    vexcodeInit();
 
+    Inertial.calibrate();
+    while (Inertial.isCalibrating()) {
+        wait(50, msec);
+    }
 }
-
-
-
-void autonomous(void) {
- 
-}
-
-
 
 void usercontrol(void) {
   
@@ -49,7 +46,7 @@ void usercontrol(void) {
     Left.spin(fwd, (leftpow * 0.12), volt);
     Right.spin(fwd, (rightpow * 0.12), volt);
 
-    if (Controller.ButtonR1.pressing()) {
+    if (Controller.ButtonR1.pressing()) { //storage (if pneumatics is retracted then score middle)
       Intake.spin(fwd, 12, volt);
       Outtake.spin(reverse, 8, volt);
     } else if (Controller.ButtonR2.pressing()) {
@@ -60,12 +57,36 @@ void usercontrol(void) {
       Outtake.stop(brake);
     }
 
-    if (Controller.ButtonL1.pressing()) {
+    if (Controller.ButtonL1.pressing()) { //score long
       ScoreLong.spin(fwd, 12, volt);
     } else if (Controller.ButtonL2.pressing()) {
       ScoreLong.spin(reverse, 12, volt);
     } else {
       ScoreLong.stop(brake);
+    }
+
+    if (Controller.ButtonX.pressing()) {
+      Matchloader.set(true); //open
+    } else if (Controller.ButtonA.pressing()) {
+      Matchloader.set(false); //retract
+    } else {
+      //Do nothing
+    }
+             
+    if (Controller.ButtonUp.pressing()) {
+      Wing.set(true); //open
+    } else if (Controller.ButtonLeft.pressing()) {
+      Wing.set(false); //retract
+    } else {
+      //Do nothing
+    }
+
+    if (Controller.ButtonDown.pressing()) {
+      Middle.set(false); 
+    } else if (Controller.ButtonRight.pressing()) {
+      Middle.set(true);
+    } else {
+      //Do nothing
     }
 
     wait(20, msec);
@@ -75,26 +96,12 @@ void usercontrol(void) {
 int main() {
   vexcodeInit();
 
-  Competition.autonomous(autonomous);
   Competition.drivercontrol(usercontrol);
+  Competition.autonomous(autonomous);
 
   pre_auton();
 
   while (true) {
     wait(100, msec);
   };
-}
-
-
-int main() {
- 
-  Competition.autonomous(autonomous);
-  Competition.drivercontrol(usercontrol);
-
-  pre_auton();
-
-
-  while (true) {
-    wait(100, msec);
-  }
 }
