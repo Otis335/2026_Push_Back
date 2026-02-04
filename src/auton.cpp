@@ -2,7 +2,6 @@
 #include "auton.h"
 using namespace vex;
 
-competition Competition;
 
 //global constants
 double kP = 0.1; 
@@ -17,24 +16,24 @@ void turn(int setpoint) {
     double integral = 0;
     double derivative = 0;
 
-    while (fabs(error) > 1){
+    while (fabs(error) > 1){ //more than 1 degree away from target, keep running code
         double sensorValue = Inertial.rotation(degrees);
         error = setpoint - sensorValue;
 
-    if (fabs(error) < 10) {  //integral windup protection
+    if (fabs(error) < 10) {  //integral windup protection, don't start counting integral until within 10 degrees
         integral = integral + error;
     } else {
         integral = 0;
     }
 
-    if ((error > 0 && prevError < 0) || (error < 0 && prevError > 0)) {
+    if ((error > 0 && prevError < 0) || (error < 0 && prevError > 0)) { //if we cross the target, reset integral
         integral = 0;
     }
 
-    derivative = error - prevError;
+    derivative = error - prevError; //change in error, so we can see how fast we're approaching target
     prevError = error;
 
-    double speed = error*kP + integral*kI + derivative*kD;
+    double speed = error*kP + integral*kI + derivative*kD; 
 
     Left.spin(forward, speed, volt);
     Right.spin(reverse, speed, volt);
