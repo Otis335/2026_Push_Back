@@ -46,16 +46,15 @@ void usercontrol(void) {
     Left.spin(fwd, (leftpow * 0.12), volt);
     Right.spin(fwd, (rightpow * 0.12), volt);
 
-    if (Controller.ButtonR1.pressing()) { //storage (if pneumatics is retracted then score middle)
+    if (Controller.ButtonR1.pressing()) { 
       Intake.spin(fwd, 12, volt);
-      Outtake.spin(reverse, 8, volt);
     } else if (Controller.ButtonR2.pressing()) {
       Intake.spin(reverse, 12, volt);
-      Outtake.spin(reverse, 12, volt);
     } else {
       Intake.stop(brake);
-      Outtake.stop(brake);
     }
+
+
 
     if (Controller.ButtonL1.pressing()) { //score long
       ScoreLong.spin(fwd, 12, volt);
@@ -77,14 +76,6 @@ void usercontrol(void) {
       Wing.set(true); //open
     } else if (Controller.ButtonLeft.pressing()) {
       Wing.set(false); //retract
-    } else {
-      //Do nothing
-    }
-
-    if (Controller.ButtonDown.pressing()) {
-      Middle.set(false); 
-    } else if (Controller.ButtonRight.pressing()) {
-      Middle.set(true);
     } else {
       //Do nothing
     }

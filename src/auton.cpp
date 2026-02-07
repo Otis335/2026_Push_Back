@@ -3,22 +3,36 @@
 using namespace vex;
 
 
-//global constants
-double kP = 0.1; 
-double kI = 0;
-double kD = 0;
+//turn constants
+double turnkP = 0.1; 
+double turnkI = 0;
+double turnkD = 0;
 
+//drive constants
+double drivekP = 0;
+double drivekD = 0;
+double driftkP = 0; 
+
+double wrapAngle(double angle) //so inertial deoesn't spin infinitely
+{
+    while (angle > 180) {
+        angle -= 360;
+    }
+    while (angle < -180) {
+        angle += 360;
+    }
+    return angle;
+}
 
 void turn(int setpoint) {
 
-    double error = setpoint - Inertial.rotation(degrees);
+    double error = wrapAngle(setpoint - Inertial.rotation(degrees));
     double prevError = error;
     double integral = 0;
     double derivative = 0;
 
     while (fabs(error) > 1){ //more than 1 degree away from target, keep running code
-        double sensorValue = Inertial.rotation(degrees);
-        error = setpoint - sensorValue;
+        double error = wrapAngle(setpoint - Inertial.rotation(degrees));
 
     if (fabs(error) < 10) {  //integral windup protection, don't start counting integral until within 10 degrees
         integral = integral + error;
@@ -33,7 +47,7 @@ void turn(int setpoint) {
     derivative = error - prevError; //change in error, so we can see how fast we're approaching target
     prevError = error;
 
-    double speed = error*kP + integral*kI + derivative*kD; 
+    double speed = error*turnkP + integral*turnkI + derivative*turnkD; 
 
     Left.spin(forward, speed, volt);
     Right.spin(reverse, speed, volt);
@@ -44,29 +58,35 @@ void turn(int setpoint) {
     Right.stop(brake);
 }
 
-void drivestraight(double targetInches, double targetAngle) { //targetAngle always 0 cuz drive straight
+void drive(double targetInches, double targetAngle) {
     Left.resetPosition();
     Right.resetPosition();
 
-    //use inches? tile on the field is 24 x 24 inches
-    double wheelDiameter = 3.25;
+    double wheelDiameter = 3.25;  //calculating movement based off size of wheels
     double circum = 3.1415 * wheelDiameter;
-    double degreesPerInch = 360 / circum;  
+    double degreesPerInch = 360 / circum; 
+    double targetDegrees = targetInches * degreesPerInch;  
 
-    double targetDegrees = targetInches * degreesPerInch;
+    double prevError = targetDegrees;
+    double distError = targetDegrees; 
+    double derivative = 0;
 
-    while (fabs(targetDegrees - Left.position(degrees)) > 5) {
-
+    // As long as the absolute error is > 5, keep moving
+    while (fabs(distError) > 5) {
         double currentDist = Left.position(degrees);
-        double error = targetDegrees - currentDist;
-        double speed = error * kP; 
+        distError = targetDegrees - currentDist; 
 
-        double currentAngle = Inertial.rotation(degrees);
+        derivative = distError - prevError;
+        prevError = distError;
+        
+        double speed = distError * drivekP + derivative * drivekD; 
+
+        double currentAngle = wrapAngle(Inertial.rotation(degrees)); 
         double driftError = targetAngle - currentAngle;
-        double correction = driftError * kP; 
+        double correction = driftError * driftkP;
 
-        Left.spin(forward, speed + correction, volt);
-        Right.spin(forward, speed - correction, volt);
+        Left.spin(forward, speed - correction, volt);
+        Right.spin(forward, speed + correction, volt);
 
         wait(15, msec);
     }
@@ -74,13 +94,12 @@ void drivestraight(double targetInches, double targetAngle) { //targetAngle alwa
     Right.stop(brake);
 }
 
-//scoring and intake functions
+
+//Intake
 void spinStorage(int timeMsec) {
     Intake.spin(forward, 12, volt);
-    Outtake.spin(reverse, 8, volt);
     wait(timeMsec, msec);
     Intake.stop(brake);
-    Outtake.stop(brake);
 }
 
 void scoreLong(int timeMsec) {
@@ -89,18 +108,61 @@ void scoreLong(int timeMsec) {
     ScoreLong.stop(brake);
 }
 
-void scoreMiddle(int timeMsec) { //most likely not going to be used in auton
-    Intake.spin(forward, 12, volt);
-    Outtake.spin(reverse, 8, volt);
-    Middle.set(false);
-    wait(timeMsec, msec);
-    Intake.stop(brake);
-    Outtake.stop(brake);
-    Middle.set(true);
-}
 
-int autonselection = 1;
+int autonselection = 0;
 
 void autonomous(void) {
- 
+    //tuning
+    if (autonselection == 0) {
+    turn(90);
+    }
+
+    else if (autonselection == 1) {
+    //start halfway in the parking zone facing the wall
+    drive(12, 0);
+    spinStorage(1000); //make function run at same time as above
+    drive(-24, 0);
+    scoreLong(2000); //outtaking extra blocks
+    turn(-90);
+    drive(24, 0);
+    turn(-90);
+    Matchloader.set(true);
+    wait(300, msec);
+    drive(36, 0);
+    spinStorage(4000);
+    //above is clear matchloader
+    drive(-24, 0);
+    Matchloader.set(false);
+    wait(300, msec);
+    turn(-90);
+    drive(-8,0);
+    turn(90);
+    drive(-72,0);
+    turn(90);
+    drive(-8,0);
+    turn(90);
+    drive(-24,0);
+    scoreLong(6000);
+    drive(24,0);
+    spinStorage(5000); //clear second matchload
+    drive(-24,0);
+    scoreLong(6000);
+    drive(2, 0);
+    Matchloader.set(false);//retract piston
+    wait(300, msec);
+    turn(90);
+    drive(96,0);
+    turn(-90);
+    Matchloader.set(true);
+    wait(300, msec);
+    drive(24,0);
+    spinStorage(5000);//clear third matchload
+    drive(-20,0);
+    Matchloader.set(false);
+    wait(300, msec);
+    turn(-90);
+    drive(-8,0);
+
+
+ }
 }
