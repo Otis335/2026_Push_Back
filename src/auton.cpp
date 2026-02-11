@@ -3,17 +3,17 @@
 using namespace vex;
 
 
-//turn constants
-double turnkP = 0.1; 
+//turn constants //negative is right, positive is left
+double turnkP = 0.083; 
 double turnkI = 0;
-double turnkD = 0;
+double turnkD = 0.02;
 
 //drive constants
-double drivekP = 0;
+double drivekP = 5;
 double drivekD = 0;
 double driftkP = 0; 
 
-double wrapAngle(double angle) //so inertial deoesn't spin infinitely
+double wrapAngle(double angle) 
 {
     while (angle > 180) {
         angle -= 360;
@@ -30,9 +30,10 @@ void turn(int setpoint) {
     double prevError = error;
     double integral = 0;
     double derivative = 0;
+    double elapsed = 0;
 
-    while (fabs(error) > 1){ //more than 1 degree away from target, keep running code
-        double error = wrapAngle(setpoint - Inertial.rotation(degrees));
+    while (fabs(error) > 5 && elapsed < 3000){ //more than 1 degree away from target, keep running code
+        error = wrapAngle(setpoint - Inertial.rotation(degrees));
 
     if (fabs(error) < 10) {  //integral windup protection, don't start counting integral until within 10 degrees
         integral = integral + error;
@@ -49,16 +50,37 @@ void turn(int setpoint) {
 
     double speed = error*turnkP + integral*turnkI + derivative*turnkD; 
 
-    Left.spin(forward, speed, volt);
-    Right.spin(reverse, speed, volt);
+    Left.spin(reverse, speed, volt);
+    Right.spin(forward, speed, volt);
 
+    elapsed += 15;
     wait(15, msec); 
  }
     Left.stop(brake);
     Right.stop(brake);
 }
 
-void drive(double targetInches, double targetAngle) {
+void drive(double distance, double speed) {
+
+    DriveTrain.setDriveVelocity(speed, percent);
+    
+    if (distance > 0) {
+        DriveTrain.driveFor(forward, distance, distanceUnits::in, true);
+    } else {
+        DriveTrain.driveFor(reverse, fabs(distance), distanceUnits::in, true);
+    }
+
+    DriveTrain.stop(hold);
+}
+
+int intakeTask() {
+    Intake.spin(forward, 12, volt);
+    wait(1000, msec);
+    Intake.stop(brake);
+    return 0;
+}
+
+void move(double targetInches, double targetAngle) {
     Left.resetPosition();
     Right.resetPosition();
 
@@ -114,7 +136,12 @@ int autonselection = 0;
 void autonomous(void) {
     //tuning
     if (autonselection == 0) {
-    turn(90);
+   drive(32,50);
+   wait(300, msec);
+   turn(-90);
+   drive(-28,40);
+   scoreLong(5000);
+
     }
 
     else if (autonselection == 1) {
@@ -162,7 +189,35 @@ void autonomous(void) {
     wait(300, msec);
     turn(-90);
     drive(-8,0);
+    }
 
+    else if (autonselection == 2) {
+    //start halfway in the parking zone facing the wall
+    Intake.spin(forward, 12, volt);
+    drive (12, 100);
+    Intake.stop(brake);
+    drive(-24, 100);
+    turn(-90);
+    drive(-12, 100);
+    turn(90);
+    scoreLong(3000); 
+    Matchloader.set(true);
+    wait(300, msec);
+    Intake.spin(forward,12, volt);
+    drive(24, 100);
+    Intake.stop(brake);
+    drive(-24,100);
+    Matchloader.set(false);
+    wait(300, msec);
+    turn(90);
+    drive(-8,100);
+    turn(90);
+    drive(-75,100);
+    turn(-90);
+    drive(-8,100);
+    turn(90);
+    drive(24,100);
+    scoreLong(5000);
 
  }
 }

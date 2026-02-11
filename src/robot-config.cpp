@@ -17,10 +17,12 @@ motor BackLeft = motor(PORT12, ratio6_1, false);
 motor Intake = motor(PORT8, ratio18_1, false);
 motor Outtake = motor(PORT6, ratio18_1, false);
 pneumatics Matchloader = pneumatics(Brain.ThreeWirePort.B);
-pneumatics Wing = pneumatics(Brain.ThreeWirePort.A);
+pneumatics Wing = pneumatics(Brain.ThreeWirePort.C);
 
 void vexcodeInit(void) {}
 
 motor_group Left = motor_group(FrontLeft, BackLeft);
 motor_group Right = motor_group(FrontRight, BackRight);
 motor_group ScoreLong = motor_group(Intake, Outtake);
+
+smartdrive DriveTrain = smartdrive(Left, Right, Inertial, 10.21, 9.5, 11, distanceUnits::in, 0.75);

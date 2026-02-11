@@ -13,6 +13,7 @@ void pre_auton(void) {
     while (Inertial.isCalibrating()) {
         wait(50, msec);
     }
+    DriveTrain.setTimeout(3000, msec);
 }
 
 void usercontrol(void) {
@@ -43,8 +44,8 @@ void usercontrol(void) {
       Right.stop(brake);
     }
 
-    Left.spin(fwd, (leftpow * 0.12), volt);
-    Right.spin(fwd, (rightpow * 0.12), volt);
+    Left.spin(reverse, (leftpow * 0.12), volt);
+    Right.spin(reverse, (rightpow * 0.12), volt);
 
     if (Controller.ButtonR1.pressing()) { 
       Intake.spin(fwd, 12, volt);
@@ -57,11 +58,11 @@ void usercontrol(void) {
 
 
     if (Controller.ButtonL1.pressing()) { //score long
-      ScoreLong.spin(fwd, 12, volt);
+      Outtake.spin(fwd, 12, volt);
     } else if (Controller.ButtonL2.pressing()) {
-      ScoreLong.spin(reverse, 12, volt);
+      Outtake.spin(reverse, 12, volt);
     } else {
-      ScoreLong.stop(brake);
+      Outtake.stop(brake);
     }
 
     if (Controller.ButtonX.pressing()) {

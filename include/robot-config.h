@@ -11,6 +11,7 @@ extern motor Intake;
 extern motor Outtake;
 extern pneumatics Matchloader;
 extern pneumatics Wing;
+extern smartdrive DriveTrain;
 
 void vexcodeInit(void);
 
