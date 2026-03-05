@@ -6,7 +6,7 @@ using namespace vex;
 //turn constants //negative is right, positive is left
 double turnkP = 0.083; 
 double turnkI = 0;
-double turnkD = 0.02;
+double turnkD = 0.03;
 
 //drive constants
 double drivekP = 5;
@@ -70,15 +70,18 @@ void drive(double distance, double speed) {
         DriveTrain.driveFor(reverse, fabs(distance), distanceUnits::in, true);
     }
 
+    if (distance < 10 && distance > -10) { //if we're trying to move a short distance, be more precise
+        while (DriveTrain.isMoving()) {
+            wait(20, msec);
+        }
+    } else { //if we're moving a long distance, stop as soon as we reach the target
+        while (DriveTrain.isMoving()) {
+            wait(20, msec);
+        }
+    }
     DriveTrain.stop(hold);
 }
 
-int intakeTask() {
-    Intake.spin(forward, 12, volt);
-    wait(1000, msec);
-    Intake.stop(brake);
-    return 0;
-}
 
 void move(double targetInches, double targetAngle) {
     Left.resetPosition();
@@ -131,67 +134,55 @@ void scoreLong(int timeMsec) {
 }
 
 
-int autonselection = 0;
+int autonselection = 2;
 
 void autonomous(void) {
     //tuning
-    if (autonselection == 0) {
-   drive(32,50);
+if (autonselection == 1) { //left side auto
+   drive(32,40); //match
    wait(300, msec);
    turn(-90);
-   drive(-28,40);
+   //Matchloader.set(false);
+   //wait(300, msec);
+   //drive(12,40);
+    //Intake.spin(forward, 12, volt);
+    //wait(5000, msec);
+    //Intake.stop(brake);
+   drive(-24,30); //-30
+   wait(300, msec);
    scoreLong(5000);
+}
 
-    }
+if (autonselection == 2) { //right side auton
+   drive(32,40); //match
+   turn(90);
+   drive(-24,30); //-30
+   //wait(300, msec);
+   Matchloader.set(true);
+   wait(300, msec);
+   drive(34,25);
+        Intake.spin(forward, 12, volt);
+        wait(500, msec);
+        Intake.stop(brake);
+    drive(-34,40);
+   scoreLong(3000);
+}
 
-    else if (autonselection == 1) {
-    //start halfway in the parking zone facing the wall
-    drive(12, 0);
-    spinStorage(1000); //make function run at same time as above
-    drive(-24, 0);
-    scoreLong(2000); //outtaking extra blocks
-    turn(-90);
-    drive(24, 0);
-    turn(-90);
-    Matchloader.set(true);
-    wait(300, msec);
-    drive(36, 0);
-    spinStorage(4000);
-    //above is clear matchloader
-    drive(-24, 0);
-    Matchloader.set(false);
-    wait(300, msec);
-    turn(-90);
-    drive(-8,0);
-    turn(90);
-    drive(-72,0);
-    turn(90);
-    drive(-8,0);
-    turn(90);
-    drive(-24,0);
-    scoreLong(6000);
-    drive(24,0);
-    spinStorage(5000); //clear second matchload
-    drive(-24,0);
-    scoreLong(6000);
-    drive(2, 0);
-    Matchloader.set(false);//retract piston
-    wait(300, msec);
-    turn(90);
-    drive(96,0);
-    turn(-90);
-    Matchloader.set(true);
-    wait(300, msec);
-    drive(24,0);
-    spinStorage(5000);//clear third matchload
-    drive(-20,0);
-    Matchloader.set(false);
-    wait(300, msec);
-    turn(-90);
-    drive(-8,0);
-    }
+if (autonselection == 3) { //alliance awp
+    drive(5,100);
+}
 
-    else if (autonselection == 2) {
+
+if (autonselection == 4) { //clear and park
+    Intake.spin(reverse, 12, volt);
+    drive(24,100);
+    wait(2000,msec);
+    Intake.stop(brake);
+}
+
+   
+
+    else if (autonselection == 7) {
     //start halfway in the parking zone facing the wall
     Intake.spin(forward, 12, volt);
     drive (12, 100);

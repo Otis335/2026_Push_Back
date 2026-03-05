@@ -34,8 +34,8 @@ void usercontrol(void) {
     throttle = pow(throttle, 3) / 10000;
     turn = pow(turn, 3) / 10000;
 
-    float leftpow = throttle + turn;
-    float rightpow = throttle - turn;
+    float leftpow = throttle - turn;
+    float rightpow = throttle + turn;
 
     if (leftpow == 0) {
       Left.stop(brake);
@@ -44,8 +44,8 @@ void usercontrol(void) {
       Right.stop(brake);
     }
 
-    Left.spin(reverse, (leftpow * 0.12), volt);
-    Right.spin(reverse, (rightpow * 0.12), volt);
+    Left.spin(fwd, (leftpow * 0.12), volt);
+    Right.spin(fwd, (rightpow * 0.12), volt);
 
     if (Controller.ButtonR1.pressing()) { 
       Intake.spin(fwd, 12, volt);
